@@ -1,9 +1,8 @@
-const db = require("../models");
+const db = require("../../models");
 const User = db.users;
 const Op = db.Sequelize.Op;
 
 exports.create = (req, res) => {
-  console.log(req);
   if (!req.body.name) {
     res.status(400).send({
       message: "Tên không được bỏ trống!"
