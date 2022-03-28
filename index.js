@@ -1,6 +1,8 @@
 const express = require("express")
 const morgan = require("morgan")
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
 
 const app = express()
 var corsOptions = {
@@ -19,6 +21,10 @@ db.sequelize.sync();
 app.get("/", (req, res) => {
   res.json({ message: "Hello." });
 });
+
+dotenv.config();
+
+require('crypto').randomBytes(64).toString('hex')
 
 require("./routes/userRoutes")(app);
 const PORT = process.env.PORT || 3000;

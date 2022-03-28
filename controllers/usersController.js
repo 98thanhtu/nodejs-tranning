@@ -1,32 +1,30 @@
 const db = require("../models");
-const User = db.users;
+const User = db.user;
 const Op = db.Sequelize.Op;
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+const authMethod = require('./../auth/authMethods.js');
 
-exports.create = (req, res) => {
-  if (!req.body.name) {
+exports.signup = (req, res) => {
+  if (!req.body.email) {
     res.status(400).send({
-      message: "Tên không được bỏ trống!"
+      message: "Email không được bỏ trống!"
     });
     return;
   }
-  const user = {
-    email: req.body.email,
+  let passwordHashed = bcrypt.hashSync(req.body.password, saltRounds);
+  let user = {
+    email: req.body.email.toLowerCase(),
+    password: passwordHashed,
     name: req.body.name,
     age: req.body.age
   };
-
-  User.create(user)
-    .then(data => {
-      res.send({
-        message: "Tạo mới thành công!"
-      });
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Tạo mới thất bại."
-      });
-    });
+  const createUser = User.create(user);
+  if (!createUser) {
+    return res
+      .status(400).send({ message: "Đăng ký thất bại" });
+  }
+  return res.send({ message: "Đăng ký thành công" });
 };
 
 exports.findAll = (req, res) => {
@@ -114,3 +112,38 @@ exports.deleteAll = (req, res) => {
       });
     });
 };
+
+exports.logIn = async (req, res) => {
+  const email = req.body.email.toLowerCase()
+  const password = req.body.password
+  let user = await User.findOne({where: { email: email }})
+  if (!user) {
+		return res.status(401).send('Tài khoản không tồn tại.');
+	}
+  const isPasswordValid = bcrypt.compareSync(password, user.password);
+  console.log(isPasswordValid);
+	if (!isPasswordValid) {
+		return res.status(401).send('Mật khẩu không chính xác.');
+	}
+  const accessTokenLife = process.env.ACCESS_TOKEN_LIFE;
+	const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
+  const dataForAccessToken = {
+		username: user.username,
+	};
+	const accessToken = await authMethod.generateToken(
+		dataForAccessToken,
+		accessTokenSecret,
+		accessTokenLife,
+	);
+	if (!accessToken) {
+		return res
+			.status(401)
+			.send('Đăng nhập không thành công, vui lòng thử lại.');
+	}
+
+  return res.json({
+		msg: 'Đăng nhập thành công.',
+		accessToken,
+		user,
+	});
+}
