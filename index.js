@@ -1,7 +1,6 @@
 const express = require("express")
 const morgan = require("morgan")
 const cors = require("cors");
-const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 
 const app = express()
