@@ -135,14 +135,9 @@ exports.logIn = async (req, res) => {
 		accessTokenSecret,
 		accessTokenLife,
 	);
-	if (!accessToken) {
-		return res
-			.status(401)
-			.send('Đăng nhập không thành công, vui lòng thử lại.');
-	}
 
   return res.json({
-		msg: 'Đăng nhập thành công.',
+		message: 'Đăng nhập thành công.',
 		accessToken,
 		user,
 	});
